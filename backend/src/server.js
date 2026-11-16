@@ -127,13 +127,57 @@ app.post('/livros', (req, res) => {
 
 //#endregion
 
+//#region requisicao put para atualizar livros
 
+app.put('/livros/:id', (req, res) => {
 
+    const id = Number(req.params.id);
 
+    // Procurar livro pelo ID
+    const livro = livros.find(livro => livro.id === id);
 
+    if (!livro) {
+        return res.status(404).json({
+            erro: 'Livro não encontrado'
+        });
+    }
 
+    // Receber os novos dados
+    const {
+        titulo,
+        autor,
+        editora,
+        anoPublicacao,
+        categoria,
+        quantidade
+    } = req.body;
 
+    // Verificar campos obrigatórios
+    if (
+        !titulo ||
+        !autor ||
+        !editora ||
+        !anoPublicacao ||
+        !categoria ||
+        quantidade === undefined
+    ) {
+        return res.status(400).json({
+            erro: 'Todos os campos são obrigatórios'
+        });
+    }
 
+    // Att os valores com os metodos setters da classe livro
+    livro.setTitulo(titulo);
+    livro.setAutor(autor);
+    livro.setEditora(editora);
+    livro.setAnoPublicacao(Number(anoPublicacao));
+    livro.setCategoria(categoria);
+    livro.setQuantidade(Number(quantidade));
+
+    res.json(livro);
+});
+
+//#endregion
 
 //#region inicia o app express
 

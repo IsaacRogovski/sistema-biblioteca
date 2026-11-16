@@ -1,6 +1,6 @@
 class Livro {
 
-    // Construtor
+    // metodo construtor
     constructor(id, titulo, autor, editora, anoPublicacao, categoria, quantidade) {
         this.id = id;
         this.titulo = titulo;
@@ -79,5 +79,5 @@ class Livro {
     }
 }
 
-// Exportar a classe
+// exportando a classe
 module.exports = Livro;
