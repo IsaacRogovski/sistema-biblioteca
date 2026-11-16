@@ -46,8 +46,9 @@ let livros = [
 
 //#endregion 
 
-// Próximo ID disponível
+
 let proximoId = 4;
+
 // Middlewares
 app.use(express.json());
 app.use(cors());
@@ -175,6 +176,29 @@ app.put('/livros/:id', (req, res) => {
     livro.setQuantidade(Number(quantidade));
 
     res.json(livro);
+});
+
+//#endregion
+
+//#region requisicao delete para excluir livros
+
+app.delete('/livros/:id', (req, res) => {
+
+    const id = Number(req.params.id);
+
+    // Encontrar a posição do livro no array
+    const indice = livros.findIndex(livro => livro.id === id);
+
+    if (indice === -1) {
+        return res.status(404).json({
+            erro: 'Livro não encontrado'
+        });
+    }
+
+    // Remover livro do array
+    livros.splice(indice, 1);
+
+    res.status(204).send();
 });
 
 //#endregion
