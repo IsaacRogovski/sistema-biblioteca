@@ -46,6 +46,53 @@ let livros = [
 
 //#endregion 
 
+//#region função de validação dos dados de entrada das requisições
+
+function validarDadosLivro(dados) {
+
+    const {
+        titulo,
+        autor,
+        editora,
+        anoPublicacao,
+        categoria,
+        quantidade
+    } = dados || {};
+
+    // Verificar campos de texto
+    if (
+        typeof titulo !== 'string' || !titulo.trim() ||
+        typeof autor !== 'string' || !autor.trim() ||
+        typeof editora !== 'string' || !editora.trim() ||
+        typeof categoria !== 'string' || !categoria.trim()
+    ) {
+        return 'Os campos de texto são obrigatórios';
+    }
+
+    // Verificar se os campos numéricos são números inteiros
+    if (
+        !Number.isInteger(quantidade) ||
+        !Number.isInteger(anoPublicacao)
+    ) {
+        return 'Quantidade e ano devem ser números inteiros';
+    }
+
+    // Verificar valores permitidos
+    if (quantidade < 0) {
+        return 'A quantidade não pode ser negativa';
+    }
+
+    if (
+        anoPublicacao < 1 ||
+        anoPublicacao > new Date().getFullYear()
+    ) {
+        return 'Ano de publicação inválido';
+    }
+
+    return null;
+}
+
+//#endregion
 
 let proximoId = 4;
 
@@ -69,8 +116,8 @@ app.get('/livros/:id', (req, res) => {
     const livro = livros.find(livro => livro.id === id);  // essa bagaca define livro como o livro que o id = o da requisicao
 
     if (!livro) { //se nao existe
-        return res.status(404).json({
-            erro: 'Livro não encontrado'
+        return res.status(400).json({
+            erro: 'ID de livro não encontrado'
         });
     }
 
@@ -93,27 +140,22 @@ app.post('/livros', (req, res) => {
     } = req.body; // pega os dados do corpo da requisição e os atribui para constantes
 
     // Verificar se a requisicao enviou os campos obrigatorios
-    if (
-        !titulo ||
-        !autor ||
-        !editora ||
-        !anoPublicacao ||
-        !categoria ||
-        quantidade === undefined
-    ) {
-        return res.status(400).json({
-            erro: 'Todos os campos são obrigatórios'
-        });
-    }
+const erro = validarDadosLivro(req.body);
+
+if (erro) { // se o erro for nulo ( o que significa que passou da funcao sem probleams) pula esta etapa
+    return res.status(400).json({
+        erro: erro
+    });
+}
 
     // Criar novo livro
     const novoLivro = new Livro(
         proximoId,
-        titulo,
-        autor,
-        editora,
+        titulo.trim(),
+        autor.trim(),
+        editora.trim(),
         Number(anoPublicacao),
-        categoria,
+        categoria.trim(),
         Number(quantidade)
     );
 
@@ -154,25 +196,20 @@ app.put('/livros/:id', (req, res) => {
     } = req.body;
 
     // Verificar campos obrigatórios
-    if (
-        !titulo ||
-        !autor ||
-        !editora ||
-        !anoPublicacao ||
-        !categoria ||
-        quantidade === undefined
-    ) {
-        return res.status(400).json({
-            erro: 'Todos os campos são obrigatórios'
-        });
-    }
+const erro = validarDadosLivro(req.body);
+
+if (erro) {
+    return res.status(400).json({
+        erro: erro
+    });
+}
 
     // Att os valores com os metodos setters da classe livro
-    livro.setTitulo(titulo);
-    livro.setAutor(autor);
-    livro.setEditora(editora);
+    livro.setTitulo(titulo.trim());
+    livro.setAutor(autor.trim());
+    livro.setEditora(editora.trim());
     livro.setAnoPublicacao(Number(anoPublicacao));
-    livro.setCategoria(categoria);
+    livro.setCategoria(categoria.trim());
     livro.setQuantidade(Number(quantidade));
 
     res.json(livro);
