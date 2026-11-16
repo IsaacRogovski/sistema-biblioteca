@@ -2,15 +2,16 @@
 
 const express = require('express');
 const cors = require('cors');
-
+const Livro = require('./models/livro');  // importanto a classe livro
 const app = express();
 
-require('dotenv').config();
-const PORT = process.env.PORT;
-
-const Livro = require('./models/livro');  // importanto a classe livro
-
 //#endregion 
+
+
+
+require('dotenv').config(); // puxa a env
+const PORT = process.env.PORT; // puxa a port da env
+
 
 //#region Banco de dados em formato de array com dados pre inseridos
 
@@ -96,11 +97,17 @@ function validarDadosLivro(dados) {
 
 //#endregion
 
+
+
 let proximoId = 4;
+
+
 
 // Middlewares
 app.use(express.json());
 app.use(cors());
+
+
 
 //#region get que envia todos os livros
 
@@ -249,3 +256,11 @@ app.listen(PORT, () => {
 });
 
 //#endregion
+
+
+
+
+// teste hash
+const usuarios = require('./data/usuarios');
+
+console.log(usuarios);
