@@ -4,7 +4,9 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
+
+require('dotenv').config();
+const PORT = process.env.PORT;
 
 const Livro = require('./models/livro');  // importanto a classe livro
 

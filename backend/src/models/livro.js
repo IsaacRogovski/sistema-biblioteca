@@ -12,56 +12,56 @@ class Livro {
     }
 
     // Getters
-    getId() {
+    get getId() {
         return this.id;
     }
 
-    getTitulo() {
+    get getTitulo() {
         return this.titulo;
     }
 
-    getAutor() {
+    get getAutor() {
         return this.autor;
     }
 
-    getEditora() {
+    get getEditora() {
         return this.editora;
     }
 
-    getAnoPublicacao() {
+    get getAnoPublicacao() {
         return this.anoPublicacao;
     }
 
-    getCategoria() {
+    get getCategoria() {
         return this.categoria;
     }
 
-    getQuantidade() {
+    get getQuantidade() {
         return this.quantidade;
     }
 
     // Setters
-    setTitulo(titulo) {
+    set settTitulo(titulo) {
         this.titulo = titulo;
     }
 
-    setAutor(autor) {
+    set setAutor(autor) {
         this.autor = autor;
     }
 
-    setEditora(editora) {
+    set setEditora(editora) {
         this.editora = editora;
     }
 
-    setAnoPublicacao(anoPublicacao) {
+    set setAnoPublicacao(anoPublicacao) {
         this.anoPublicacao = anoPublicacao;
     }
 
-    setCategoria(categoria) {
+    set setCategoria(categoria) {
         this.categoria = categoria;
     }
 
-    setQuantidade(quantidade) {
+    set setQuantidade(quantidade) {
         this.quantidade = quantidade;
     }
 
