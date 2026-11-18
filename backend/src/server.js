@@ -102,10 +102,7 @@ function validarDadosLivro(dados) {
 
 //#endregion
 
-
-
 let proximoId = 4;
-
 
 //#region Autenticação de usuarios com toknes
 
@@ -154,7 +151,7 @@ app.post('/login', async (req, res) => { // funcao assincrona para o codigo func
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: '1m'
+            expiresIn: '1h'
         }
     );
 
@@ -167,7 +164,6 @@ app.post('/login', async (req, res) => { // funcao assincrona para o codigo func
 });
 
 //#endregion
-
 
 // Middlewares
 app.use(express.json());
