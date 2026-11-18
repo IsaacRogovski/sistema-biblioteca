@@ -41,7 +41,7 @@ class Livro {
     }
 
     // Setters
-    set settTitulo(titulo) {
+    set setTitulo(titulo) {
         this.titulo = titulo;
     }
 

@@ -102,15 +102,73 @@ function validarDadosLivro(dados) {
 
 //#endregion
 
-
-
-let proximoId = 4;
-
-
-
 // Middlewares
 app.use(express.json());
 app.use(cors());
+
+let proximoId = 4;
+
+//#region Autenticação de usuarios com toknes
+
+app.post('/login', async (req, res) => { // funcao assincrona para o codigo funcionar enquanto isso ta sendo executado
+
+    const { usuario, senha } = req.body;
+
+    // Verifica se os campos foram enviados
+    if (!usuario || !senha) {
+        return res.status(400).json({
+            erro: 'Informe usuário e senha'
+        });
+    }
+
+    // Procura o usuário cadastrado
+    const usuarioEncontrado = usuarios.find(
+        u => u.usuario === usuario
+    );
+
+    // Verifica se o usuário existe
+    if (!usuarioEncontrado) {
+        return res.status(401).json({
+            erro: 'Usuário ou senha incorretos'
+        });
+    }
+
+    // Compara a senha digitada com o hash armazenado
+    const senhaCorreta = await bcrypt.compare( // await faz o codigo esperar isso pra continaur
+        senha, //senha inserida
+        usuarioEncontrado.senha // senha do usuario encontrado no banco
+    );
+
+    // Verifica se a senha está correta
+    if (!senhaCorreta) {
+        return res.status(401).json({
+            erro: 'Usuário ou senha incorretos'
+        });
+    }
+
+    // Gera o token JWT
+    const token = jwt.sign(
+        {
+            id: usuarioEncontrado.id,
+            usuario: usuarioEncontrado.usuario,
+            cargo: usuarioEncontrado.cargo
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: '1h'
+        }
+    );
+
+    // Retorna o token
+    res.status(200).json({
+        mensagem: 'Login realizado com sucesso!',
+        token: token
+    });
+
+});
+
+//#endregion
+
 
 app.use('/livros', authMiddleware); // aplica o middleware a todas as requisições que começam com /livros.
 
@@ -219,12 +277,12 @@ if (erro) {
 }
 
     // Att os valores com os metodos setters da classe livro
-    livro.setTitulo(titulo.trim());
-    livro.setAutor(autor.trim());
-    livro.setEditora(editora.trim());
-    livro.setAnoPublicacao(Number(anoPublicacao));
-    livro.setCategoria(categoria.trim());
-    livro.setQuantidade(Number(quantidade));
+    livro.setTitulo=titulo.trim();
+    livro.setAutor=autor.trim();
+    livro.setEditora=editora.trim();
+    livro.setAnoPublicacao= Number(anoPublicacao);
+    livro.setCategoria=categoria.trim();
+    livro.setQuantidade=Number(quantidade);
 
     res.json(livro);
 });
@@ -262,63 +320,3 @@ app.listen(PORT, () => {
 
 //#endregion
 
-//#region Autenticação de usuarios com toknes
-
-app.post('/login', async (req, res) => { // funcao assincrona para o codigo funcionar enquanto isso ta sendo executado
-
-    const { usuario, senha } = req.body;
-
-    // Verifica se os campos foram enviados
-    if (!usuario || !senha) {
-        return res.status(400).json({
-            erro: 'Informe usuário e senha'
-        });
-    }
-
-    // Procura o usuário cadastrado
-    const usuarioEncontrado = usuarios.find(
-        u => u.usuario === usuario
-    );
-
-    // Verifica se o usuário existe
-    if (!usuarioEncontrado) {
-        return res.status(401).json({
-            erro: 'Usuário ou senha incorretos'
-        });
-    }
-
-    // Compara a senha digitada com o hash armazenado
-    const senhaCorreta = await bcrypt.compare( // await faz o codigo esperar isso pra continaur
-        senha, //senha inserida
-        usuarioEncontrado.senha // senha do usuario encontrado no banco
-    );
-
-    // Verifica se a senha está correta
-    if (!senhaCorreta) {
-        return res.status(401).json({
-            erro: 'Usuário ou senha incorretos'
-        });
-    }
-
-    // Gera o token JWT
-    const token = jwt.sign(
-        {
-            id: usuarioEncontrado.id,
-            usuario: usuarioEncontrado.usuario,
-            cargo: usuarioEncontrado.cargo
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: '1h'
-        }
-    );
-
-    // Retorna o token
-    res.status(200).json({
-        mensagem: 'Login realizado com sucesso!',
-        token: token
-    });
-
-});
-
-//#endregion
