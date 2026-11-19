@@ -1,0 +1,75 @@
+
+<h1>{{ titulo }}</h1>
+
+<h3>Cadastro de Livros</h3>
+
+<label>Título:</label>
+<input
+  type="text"
+  [(ngModel)]="novoLivro.titulo"
+  placeholder="Digite o título do livro"
+>
+
+<label>Autor:</label>
+<input
+  type="text"
+  [(ngModel)]="novoLivro.autor"
+  placeholder="Digite o autor do livro"
+>
+
+<label>Ano:</label>
+<input
+  type="number"
+  [(ngModel)]="novoLivro.ano"
+  placeholder="Digite o ano"
+>
+
+<label>Editora:</label>
+<input
+  type="text"
+  [(ngModel)]="novoLivro.editora"
+  placeholder="Digite a editora"
+>
+
+<label>Número de páginas:</label>
+<input
+  type="number"
+  [(ngModel)]="novoLivro.paginas"
+  placeholder="Digite o número de páginas"
+>
+
+<label>Gênero:</label>
+<input
+  type="text"
+  [(ngModel)]="novoLivro.genero"
+  placeholder="Digite o gênero"
+>
+
+@if (LivroEmEdicao !== null) {
+  <button (click)="SalvarEdicao()">Salvar edição</button>
+  <button (click)="MetodoCancelarEdicao()">Cancelar</button>
+} @else {
+  <button (click)="AdicionarLivro()">Adicionar livro</button>
+  <button (click)="MetodoCancelarAdicao()">Limpar campos</button>
+}
+
+<hr>
+
+<h3>Livros cadastrados</h3>
+
+<ul>
+  @for (livro of livros; track livro.id) {
+    <li>
+      <strong>{{ livro.titulo }}</strong><br>
+      Autor: {{ livro.autor }}<br>
+      Ano: {{ livro.ano }}<br>
+      Editora: {{ livro.editora }}<br>
+      Páginas: {{ livro.paginas }}<br>
+      Gênero: {{ livro.genero }}<br>
+
+      <button (click)="EditarLivro(livro)">Editar</button>
+      <button (click)="ExcluirLivro(livro)">Excluir</button>
+    </li>
+    <br>
+  }
+</ul>
