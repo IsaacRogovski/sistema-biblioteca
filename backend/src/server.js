@@ -2,21 +2,13 @@
 
 const express = require('express');
 const cors = require('cors');
+
 const app = express();
-const bcrypt = require('bcrypt'); // modulo pra criacao de hash de senhas
-const jwt = require('jsonwebtoken'); // pra tokens
+const PORT = 3000;
 
 const Livro = require('./models/livro');  // importanto a classe livro
-const usuarios = require('./data/usuarios'); // importando os usuarios pré cadastrados
 
-const authMiddleware = require('./middlewares/authMiddleware'); //middleware pra autenticação do token
-
-require('dotenv').config(); // carrega a .env
 //#endregion 
-
-
-const PORT = process.env.PORT; // puxa a port da env
-
 
 //#region Banco de dados em formato de array com dados pre inseridos
 
@@ -169,8 +161,6 @@ app.post('/login', async (req, res) => { // funcao assincrona para o codigo func
 
 //#endregion
 
-
-app.use('/livros', authMiddleware); // aplica o middleware a todas as requisições que começam com /livros.
 
 //#region get que envia todos os livros
 
