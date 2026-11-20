@@ -1,21 +1,28 @@
 const Usuario = require('../models/usuarios'); // importa a calsse usuario
 const bcrypt = require('bcrypt'); // puxa o modulo bcrypt pra hash de senhas
 
-// Usuários previamente cadastrados
+// Usuários previamente cadastrados (senhas guardadas como hash)
 const usuarios = [
     new Usuario(
         1,
-        'Administrador', 
-        'admin', 
-        bcrypt.hashSync('admin123', 10),
+        'Henrique',
+        'ADMHENRIQUE',
+        bcrypt.hashSync('12345', 10),
         'Administrador'
     ),
     new Usuario(
-        2, 
-        'Aluno', 
-        'aluno', 
-        bcrypt.hashSync('aluno123', 10), 
-        'Aluno')
+        2,
+        'Isaac',
+        'ADMISAAC',
+        bcrypt.hashSync('12345', 10),
+        'Administrador'
+    ),
+    new Usuario(
+        3,
+        'Giovanna',
+        'ADMGIOVANNA',
+        bcrypt.hashSync('12345', 10),
+        'Administrador'
+    )
 ];
 module.exports = usuarios;
-

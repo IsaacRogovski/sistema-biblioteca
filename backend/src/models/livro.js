@@ -1,14 +1,14 @@
 class Livro {
 
     // metodo construtor
-    constructor(id, titulo, autor, editora, anoPublicacao, categoria, quantidade) {
+    constructor(id, titulo, autor, ano, editora, paginas, genero) {
         this.id = id;
         this.titulo = titulo;
         this.autor = autor;
+        this.ano = ano;
         this.editora = editora;
-        this.anoPublicacao = anoPublicacao;
-        this.categoria = categoria;
-        this.quantidade = quantidade;
+        this.paginas = paginas;
+        this.genero = genero;
     }
 
     // Getters
@@ -24,23 +24,23 @@ class Livro {
         return this.autor;
     }
 
+    get getAno() {
+        return this.ano;
+    }
+
     get getEditora() {
         return this.editora;
     }
 
-    get getAnoPublicacao() {
-        return this.anoPublicacao;
+    get getPaginas() {
+        return this.paginas;
     }
 
-    get getCategoria() {
-        return this.categoria;
+    get getGenero() {
+        return this.genero;
     }
 
-    get getQuantidade() {
-        return this.quantidade;
-    }
-
-    // Setters
+    // Setters (são propriedades: usar livro.setTitulo = 'x', e não livro.setTitulo('x'))
     set setTitulo(titulo) {
         this.titulo = titulo;
     }
@@ -49,33 +49,20 @@ class Livro {
         this.autor = autor;
     }
 
+    set setAno(ano) {
+        this.ano = ano;
+    }
+
     set setEditora(editora) {
         this.editora = editora;
     }
 
-    set setAnoPublicacao(anoPublicacao) {
-        this.anoPublicacao = anoPublicacao;
+    set setPaginas(paginas) {
+        this.paginas = paginas;
     }
 
-    set setCategoria(categoria) {
-        this.categoria = categoria;
-    }
-
-    set setQuantidade(quantidade) {
-        this.quantidade = quantidade;
-    }
-
-    // Métodos próprios
-    estaDisponivel() {
-        return this.quantidade > 0;
-    }
-
-    atualizarQuantidade(valor) {
-        this.quantidade += valor;
-
-        if (this.quantidade < 0) {
-            this.quantidade = 0;
-        }
+    set setGenero(genero) {
+        this.genero = genero;
     }
 }
 

@@ -10,7 +10,7 @@ function authMiddleware(req, res, next) {
     // Verifica se o token foi enviado
     if (!authorization) {
         return res.status(401).json({
-            erro: 'Token não informado'
+            mensagem: 'Acesso negado. Token não fornecido.'
         });
     }
 
@@ -19,7 +19,7 @@ function authMiddleware(req, res, next) {
 
     if (partes.length !== 2 || partes[0] !== 'Bearer') {
         return res.status(401).json({
-            erro: 'Formato de token inválido'
+            mensagem: 'Formato de token inválido.'
         });
     }
 
@@ -42,7 +42,7 @@ function authMiddleware(req, res, next) {
     } catch (erro) {
 
         return res.status(401).json({
-            erro: 'Token inválido ou expirado'
+            mensagem: 'Token inválido ou expirado.'
         });
 
     }

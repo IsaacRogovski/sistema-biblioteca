@@ -1,59 +1,138 @@
-# EstudoAngular
+# Minha Biblioteca
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.1.
+Sistema de **gestão de biblioteca** (cadastro de livros) com login e CRUD completo.
 
-## Development server
+- **Frontend:** Angular 22 (componentes standalone, signals, rotas com guard e interceptor HTTP)
+- **Backend:** API REST em Node.js + Express, com autenticação por token JWT
+- **Dados:** array em memória (pré-cadastrado, não persiste ao reiniciar a API)
 
-To start a local development server, run:
+## Pré-requisitos
 
-```bash
-ng serve
-```
+- **Node.js 22.22.3 ou superior** (ou 24.15+). Confira com `node -v`.
+- npm (já vem com o Node).
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Como rodar
 
-## Code scaffolding
+São dois processos: a **API** (porta 3000) e o **front** (porta 4200). Abra **dois terminais** na pasta do projeto.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+**Primeira vez (uma vez só):**
 
 ```bash
-ng generate --help
+npm install            # instala o front
+npm run api:preparar   # instala o backend e cria backend/.env
 ```
 
-## Building
-
-To build the project run:
+**Terminal 1 – API:**
 
 ```bash
-ng build
+npm run api
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Deve aparecer `Servidor rodando em http://localhost:3000`.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+**Terminal 2 – Front:**
 
 ```bash
-ng test
+npm start
 ```
 
-## Running end-to-end tests
+Abra **http://localhost:4200** no navegador.
 
-For end-to-end (e2e) testing, run:
+> Para o backend reiniciar sozinho ao editar o código, use `npm run api:dev` no lugar de `npm run api`.
+
+### Usuários de teste
+
+| Usuário       | Senha   |
+| ------------- | ------- |
+| `ADMHENRIQUE` | `12345` |
+| `ADMISAAC`    | `12345` |
+| `ADMGIOVANNA` | `12345` |
+
+## O que o sistema faz
+
+- **Login** com usuários pré-cadastrados (sem tela de cadastro). Senhas guardadas como hash bcrypt.
+- **CRUD de livros:** adicionar, listar, editar e excluir (com confirmação).
+- **Busca** no acervo por título, autor, editora ou gênero (ignora acentos).
+- **Sair da conta** pelo botão "Sair". Depois de sair, `/biblioteca` volta para o login.
+- Sessão expirada ou token inválido: o front encerra a sessão e avisa.
+
+## Rotas da API
+
+| Método   | Rota           | Token? | Descrição                                 |
+| -------- | -------------- | ------ | ----------------------------------------- |
+| `POST`   | `/login`       | não    | Recebe `{ usuario, senha }`, devolve o token |
+| `GET`    | `/livros`      | sim    | Lista todos os livros                     |
+| `GET`    | `/livros/:id`  | sim    | Busca um livro                            |
+| `POST`   | `/livros`      | sim    | Cadastra um livro (201)                   |
+| `PUT`    | `/livros/:id`  | sim    | Atualiza um livro                         |
+| `DELETE` | `/livros/:id`  | sim    | Exclui um livro (204)                     |
+
+Sem token (ou com token inválido/expirado), as rotas de `/livros` respondem **401**.
+
+### Objeto Livro (6 propriedades + id)
+
+```json
+{ "id": 1, "titulo": "O Hobbit", "autor": "J.R.R. Tolkien", "ano": 1937,
+  "editora": "George Allen & Unwin", "paginas": 310, "genero": "Fantasia" }
+```
+
+A classe `Livro` (`backend/src/models/livro.js`) tem construtor, getters e setters.
+
+### Testando a API sem o front (curl)
 
 ```bash
-ng e2e
+# 401: sem token
+curl -i http://localhost:3000/livros
+
+# login: devolve o token
+curl -X POST http://localhost:3000/login -H "Content-Type: application/json" \
+  -d '{"usuario":"ADMISAAC","senha":"12345"}'
+
+# usando o token (troque SEU_TOKEN)
+curl http://localhost:3000/livros -H "Authorization: Bearer SEU_TOKEN"
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Como o token funciona
 
-## Additional Resources
+1. O front envia `POST /login`; a API confere a senha (bcrypt) e devolve um **JWT** válido por 1 hora.
+2. O token é guardado no `localStorage` (`AuthService`).
+3. O **interceptor** (`auth.interceptor.ts`) anexa `Authorization: Bearer <token>` em toda chamada à API.
+4. Se a API responder **401**, o interceptor apaga o token e leva para o login.
+5. O **guard** (`auth.guard.ts`) bloqueia `/biblioteca` para quem não tem token válido.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Estrutura do projeto
+
+```
+backend/
+  src/
+    server.js              rotas da API (login + CRUD)
+    models/                classes Livro e Usuario
+    data/usuarios.js       usuários pré-cadastrados (senha em hash)
+    middlewares/           authMiddleware.js (valida o token)
+  .env.example             modelo das variáveis (PORT, JWT_SECRET)
+src/app/
+  login/                   tela de login
+  biblioteca/              tela do acervo (formulário + lista)
+  components/toast/        avisos na tela
+  services/                AuthService, LivroService, ToastService
+  interceptors/            auth.interceptor.ts
+  guards/                  auth.guard.ts
+  models/livro.ts          interface Livro + validação do formulário
+  config.ts                endereço da API
+src/styles.css             tema global (cores, fonte, botões, campos)
+```
+
+## Testes
+
+```bash
+npm test
+```
+
+Testes unitários (Vitest) de validação do formulário, `AuthService` e dos componentes de login e biblioteca.
+
+## Problemas comuns
+
+- **"Sem conexão com a API"** na tela: a API não está rodando. Rode `npm run api` em outro terminal.
+- **Erro de porta em uso:** feche o processo que usa a 3000/4200, ou mude `PORT` em `backend/.env` e `API_URL` em `src/app/config.ts`.
+- **`JWT_SECRET` indefinido / erro ao logar:** rode `npm run api:preparar` para criar o `backend/.env`.
+- Os dados voltam ao estado inicial sempre que a API é reiniciada (é um array em memória).
