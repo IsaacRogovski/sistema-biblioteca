@@ -11,48 +11,28 @@ const usuarios = require('./data/usuarios'); // importando os usuarios pré cada
 
 const authMiddleware = require('./middlewares/authMiddleware'); //middleware pra autenticação do token
 
-require('dotenv').config(); // carrega a .env
-//#endregion 
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') }); // carrega backend/.env, não importa de onde o node foi iniciado
+//#endregion
 
 
-const PORT = process.env.PORT; // puxa a port da env
+const PORT = process.env.PORT || 3000; // puxa a port da env (3000 se não estiver definida)
 
 
 //#region Banco de dados em formato de array com dados pre inseridos
 
 let livros = [
-    new Livro(
-        1,
-        'Dom Casmurro',
-        'Machado de Assis',
-        'Companhia das Letras',
-        1899,
-        'Romance',
-        5
-    ),
-
-    new Livro(
-        2,
-        'O Pequeno Príncipe',
-        'Antoine de Saint-Exupéry',
-        'Agir',
-        1943,
-        'Fantasia',
-        8
-    ),
-
-    new Livro(
-        3,
-        '1984',
-        'George Orwell',
-        'Companhia das Letras',
-        1949,
-        'Ficção distópica',
-        3
-    )
+    new Livro(1, 'O Pequeno Príncipe', 'Antoine de Saint-Exupéry', 1943, 'Reynal & Hitchcock', 96, 'Ficção'),
+    new Livro(2, 'O Hobbit', 'J.R.R. Tolkien', 1937, 'George Allen & Unwin', 310, 'Fantasia'),
+    new Livro(3, 'Dom Casmurro', 'Machado de Assis', 1899, 'Vozes', 256, 'Ficção'),
+    new Livro(4, '1984', 'George Orwell', 1948, 'Secker & Warburg', 328, 'Ficção Científica'),
+    new Livro(5, 'O Senhor dos Anéis', 'J.R.R. Tolkien', 1954, 'George Allen & Unwin', 423, 'Fantasia'),
+    new Livro(6, 'Harry Potter e a Pedra Filosofal', 'J.K. Rowling', 1997, 'Bloomsbury', 223, 'Fantasia')
 ];
 
-//#endregion 
+let proximoId = 7;
+
+//#endregion
 
 //#region função de validação dos dados de entrada das requisições
 
@@ -61,10 +41,10 @@ function validarDadosLivro(dados) {
     const {
         titulo,
         autor,
+        ano,
         editora,
-        anoPublicacao,
-        categoria,
-        quantidade
+        paginas,
+        genero
     } = dados || {};
 
     // Verificar campos de texto
@@ -72,29 +52,29 @@ function validarDadosLivro(dados) {
         typeof titulo !== 'string' || !titulo.trim() ||
         typeof autor !== 'string' || !autor.trim() ||
         typeof editora !== 'string' || !editora.trim() ||
-        typeof categoria !== 'string' || !categoria.trim()
+        typeof genero !== 'string' || !genero.trim()
     ) {
-        return 'Os campos de texto são obrigatórios';
+        return 'Preencha todos os campos.';
     }
 
     // Verificar se os campos numéricos são números inteiros
     if (
-        !Number.isInteger(quantidade) ||
-        !Number.isInteger(anoPublicacao)
+        !Number.isInteger(ano) ||
+        !Number.isInteger(paginas)
     ) {
-        return 'Quantidade e ano devem ser números inteiros';
+        return 'Ano e número de páginas devem ser números inteiros.';
     }
 
     // Verificar valores permitidos
-    if (quantidade < 0) {
-        return 'A quantidade não pode ser negativa';
+    if (paginas < 1) {
+        return 'O número de páginas deve ser maior que zero.';
     }
 
     if (
-        anoPublicacao < 1 ||
-        anoPublicacao > new Date().getFullYear()
+        ano < 1 ||
+        ano > new Date().getFullYear()
     ) {
-        return 'Ano de publicação inválido';
+        return 'Ano de publicação inválido.';
     }
 
     return null;
@@ -102,22 +82,149 @@ function validarDadosLivro(dados) {
 
 //#endregion
 
+
 // Middlewares
 app.use(express.json());
 app.use(cors());
 
-let proximoId = 4;
+app.use('/livros', authMiddleware); // aplica o middleware a todas as requisições que começam com /livros.
 
-//#region Autenticação de usuarios com toknes
+//#region get que envia todos os livros
 
-app.post('/login', async (req, res) => { // funcao assincrona para o codigo funcionar enquanto isso ta sendo executado
+app.get('/livros', (req, res) => {
+    res.json(livros);
+});
+
+//#endregion
+
+//#region get por id
+
+app.get('/livros/:id', (req, res) => {
+
+    const id = Number(req.params.id); // parametro :id da requisicao
+    const livro = livros.find(livro => livro.id === id);
+
+    if (!livro) { // se nao existe
+        return res.status(404).json({
+            mensagem: 'Livro não encontrado.'
+        });
+    }
+
+    res.json(livro);
+});
+
+//#endregion
+
+//#region requisicao post pra criar os livros
+
+app.post('/livros', (req, res) => {
+
+    // Verificar se a requisicao enviou os campos corretamente (null = tudo certo)
+    const erro = validarDadosLivro(req.body);
+
+    if (erro) {
+        return res.status(400).json({
+            mensagem: erro
+        });
+    }
+
+    const { titulo, autor, ano, editora, paginas, genero } = req.body;
+
+    // Criar novo livro
+    const novoLivro = new Livro(
+        proximoId,
+        titulo.trim(),
+        autor.trim(),
+        ano,
+        editora.trim(),
+        paginas,
+        genero.trim()
+    );
+
+    // Adicionar ao array
+    livros.push(novoLivro);
+
+    // Incrementar ID
+    proximoId++;
+
+    res.status(201).json(novoLivro);
+});
+
+//#endregion
+
+//#region requisicao put para atualizar livros
+
+app.put('/livros/:id', (req, res) => {
+
+    const id = Number(req.params.id);
+
+    // Procurar livro pelo ID
+    const livro = livros.find(livro => livro.id === id);
+
+    if (!livro) {
+        return res.status(404).json({
+            mensagem: 'Livro não encontrado.'
+        });
+    }
+
+    // Verificar campos obrigatórios
+    const erro = validarDadosLivro(req.body);
+
+    if (erro) {
+        return res.status(400).json({
+            mensagem: erro
+        });
+    }
+
+    const { titulo, autor, ano, editora, paginas, genero } = req.body;
+
+    // Att os valores com os setters da classe livro
+    // (setters da classe são propriedades, então usa-se atribuição e não chamada de função)
+    livro.setTitulo = titulo.trim();
+    livro.setAutor = autor.trim();
+    livro.setAno = ano;
+    livro.setEditora = editora.trim();
+    livro.setPaginas = paginas;
+    livro.setGenero = genero.trim();
+
+    res.json(livro);
+});
+
+//#endregion
+
+//#region requisicao delete para excluir livros
+
+app.delete('/livros/:id', (req, res) => {
+
+    const id = Number(req.params.id);
+
+    // Encontrar a posição do livro no array
+    const indice = livros.findIndex(livro => livro.id === id);
+
+    if (indice === -1) {
+        return res.status(404).json({
+            mensagem: 'Livro não encontrado.'
+        });
+    }
+
+    // Remover livro do array
+    livros.splice(indice, 1);
+
+    res.status(204).send();
+});
+
+//#endregion
+
+//#region Autenticação de usuarios com tokens
+
+app.post('/login', async (req, res) => { // funcao assincrona porque o bcrypt.compare é assíncrono
 
     const { usuario, senha } = req.body;
 
     // Verifica se os campos foram enviados
     if (!usuario || !senha) {
         return res.status(400).json({
-            erro: 'Informe usuário e senha'
+            mensagem: 'Informe usuário e senha.'
         });
     }
 
@@ -129,20 +236,20 @@ app.post('/login', async (req, res) => { // funcao assincrona para o codigo func
     // Verifica se o usuário existe
     if (!usuarioEncontrado) {
         return res.status(401).json({
-            erro: 'Usuário ou senha incorretos'
+            mensagem: 'Usuário ou senha incorretos.'
         });
     }
 
     // Compara a senha digitada com o hash armazenado
-    const senhaCorreta = await bcrypt.compare( // await faz o codigo esperar isso pra continaur
-        senha, //senha inserida
-        usuarioEncontrado.senha // senha do usuario encontrado no banco
+    const senhaCorreta = await bcrypt.compare( // await faz o codigo esperar isso pra continuar
+        senha, // senha inserida
+        usuarioEncontrado.senha // hash do usuario encontrado no banco
     );
 
     // Verifica se a senha está correta
     if (!senhaCorreta) {
         return res.status(401).json({
-            erro: 'Usuário ou senha incorretos'
+            mensagem: 'Usuário ou senha incorretos.'
         });
     }
 
@@ -169,149 +276,6 @@ app.post('/login', async (req, res) => { // funcao assincrona para o codigo func
 
 //#endregion
 
-
-app.use('/livros', authMiddleware); // aplica o middleware a todas as requisições que começam com /livros.
-
-//#region get que envia todos os livros
-
-app.get('/livros', (req, res) => { 
-    res.json(livros); 
-});
-
-//#endregion
-
-//#region get por id
-
-app.get('/livros/:id', (req, res) => {
-
-    const id = Number(req.params.id); //req = requisicao, logo, o parametro id da requisicao que foi enviada no get, o :id
-    const livro = livros.find(livro => livro.id === id);  // essa bagaca define livro como o livro que o id = o da requisicao
-
-    if (!livro) { //se nao existe
-        return res.status(400).json({
-            erro: 'ID de livro não encontrado'
-        });
-    }
-
-    res.json(livro); // se ele existir ele retorna a requisicao get com o livro que foi pedido
-});
-
-//#endregion
-
-//#region requisicao post pra criar os livros
-
-app.post('/livros', (req, res) => {
-
-    const {
-        titulo,
-        autor,
-        editora,
-        anoPublicacao,
-        categoria,
-        quantidade
-    } = req.body; // pega os dados do corpo da requisição e os atribui para constantes
-
-    // Verificar se a requisicao enviou os campos obrigatorios
-const erro = validarDadosLivro(req.body);
-
-if (erro) { // se o erro for nulo ( o que significa que passou da funcao sem probleams) pula esta etapa
-    return res.status(400).json({
-        erro: erro
-    });
-}
-
-    // Criar novo livro
-    const novoLivro = new Livro(
-        proximoId,
-        titulo.trim(),
-        autor.trim(),
-        editora.trim(),
-        Number(anoPublicacao),
-        categoria.trim(),
-        Number(quantidade)
-    );
-
-    // Adicionar ao array
-    livros.push(novoLivro);
-
-    // Incrementar ID
-    proximoId++;
-
-    res.status(201).json(novoLivro);
-});
-
-//#endregion
-
-//#region requisicao put para atualizar livros
-
-app.put('/livros/:id', (req, res) => {
-
-    const id = Number(req.params.id);
-
-    // Procurar livro pelo ID
-    const livro = livros.find(livro => livro.id === id);
-
-    if (!livro) {
-        return res.status(404).json({
-            erro: 'Livro não encontrado'
-        });
-    }
-
-    // Receber os novos dados
-    const {
-        titulo,
-        autor,
-        editora,
-        anoPublicacao,
-        categoria,
-        quantidade
-    } = req.body;
-
-    // Verificar campos obrigatórios
-const erro = validarDadosLivro(req.body);
-
-if (erro) {
-    return res.status(400).json({
-        erro: erro
-    });
-}
-
-    // Att os valores com os metodos setters da classe livro
-    livro.setTitulo=titulo.trim();
-    livro.setAutor=autor.trim();
-    livro.setEditora=editora.trim();
-    livro.setAnoPublicacao= Number(anoPublicacao);
-    livro.setCategoria=categoria.trim();
-    livro.setQuantidade=Number(quantidade);
-
-    res.json(livro);
-});
-
-//#endregion
-
-//#region requisicao delete para excluir livros
-
-app.delete('/livros/:id', (req, res) => {
-
-    const id = Number(req.params.id);
-
-    // Encontrar a posição do livro no array
-    const indice = livros.findIndex(livro => livro.id === id);
-
-    if (indice === -1) {
-        return res.status(404).json({
-            erro: 'Livro não encontrado'
-        });
-    }
-
-    // Remover livro do array
-    livros.splice(indice, 1);
-
-    res.status(204).send();
-});
-
-//#endregion
-
 //#region inicia o app express
 
 app.listen(PORT, () => {
@@ -319,4 +283,3 @@ app.listen(PORT, () => {
 });
 
 //#endregion
-

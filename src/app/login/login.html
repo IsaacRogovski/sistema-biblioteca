@@ -1,26 +1,72 @@
-<h1>Minha Biblioteca</h1>
-<h2>Login</h2>
-<form (ngSubmit)="Entrar()">
-  <div>
-    <label>Usuário:</label>
-    <input 
-      type="text" 
-      [(ngModel)]="usuario" 
-      name="usuario"
-      placeholder="Digite seu usuário"
-    >
-  </div>
-  <div>
-    <label>Senha:</label>
-    <input 
-      type="password" 
-      [(ngModel)]="senha" 
-      name="senha"
-      placeholder="Digite sua senha"
-    >
-  </div>
+<div class="pagina">
+  <section class="vitrine">
+    <div class="vitrine-topo">
+      <h1>Minha Biblioteca</h1>
+      <p>Cadastre, edite e encontre os livros do acervo.</p>
+    </div>
 
-  <button type="submit">Entrar</button>
+    <div class="estante" aria-hidden="true">
+      @for (lombada of lombadas; track lombada.titulo; let i = $index) {
+        <div
+          class="lombada"
+          [class.inclinada]="lombada.inclinada"
+          [style.--i]="i"
+          [style.--cor]="lombada.cor"
+          [style.--texto]="lombada.texto"
+          [style.--altura]="lombada.altura"
+          [style.--largura]="lombada.largura + 'rem'"
+        >
+          <span>{{ lombada.titulo }}</span>
+        </div>
+      }
+    </div>
+  </section>
 
-</form>
+  <section class="acesso">
+    <form class="formulario" (ngSubmit)="entrar()">
+      <div class="cabecalho">
+        <h2>Entrar</h2>
+        <p>Use o usuário e a senha cadastrados para acessar o acervo.</p>
+      </div>
 
+      @if (erro(); as mensagem) {
+        <p class="falha" role="alert">{{ mensagem }}</p>
+      }
+
+      <div class="campo">
+        <label for="usuario">Usuário</label>
+        <input
+          id="usuario"
+          name="usuario"
+          type="text"
+          autocomplete="username"
+          autocapitalize="characters"
+          spellcheck="false"
+          placeholder="Digite seu usuário"
+          [(ngModel)]="usuario"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="senha">Senha</label>
+        <div class="senha-linha">
+          <input
+            id="senha"
+            name="senha"
+            autocomplete="current-password"
+            placeholder="Digite sua senha"
+            [type]="senhaVisivel() ? 'text' : 'password'"
+            [(ngModel)]="senha"
+          />
+          <button type="button" class="alternar" (click)="alternarSenha()" [attr.aria-pressed]="senhaVisivel()">
+            {{ senhaVisivel() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primario" [disabled]="enviando()">
+        {{ enviando() ? 'Entrando...' : 'Entrar' }}
+      </button>
+    </form>
+  </section>
+</div>

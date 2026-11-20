@@ -1,75 +1,207 @@
+<header class="topo">
+  <div class="topo-interno">
+    <div class="marca">
+      <img src="logo.svg" alt="" width="28" height="28" />
+      <span>Minha Biblioteca</span>
+    </div>
 
-<h1>{{ titulo }}</h1>
+    <div class="sessao">
+      @if (usuario(); as nome) {
+        <span class="sessao-usuario">{{ nome }}</span>
+      }
+      <button type="button" class="btn btn-claro btn-pequeno" (click)="sair()">Sair</button>
+    </div>
+  </div>
+</header>
 
-<h3>Cadastro de Livros</h3>
+<main class="conteudo">
+  <!-- Cadastro e edição -->
+  <section class="painel" [class.editando]="livroEmEdicao() !== null" #painel aria-labelledby="titulo-form">
+    <h2 id="titulo-form">{{ livroEmEdicao() ? 'Editar livro' : 'Cadastrar livro' }}</h2>
 
-<label>Título:</label>
-<input
-  type="text"
-  [(ngModel)]="novoLivro.titulo"
-  placeholder="Digite o título do livro"
->
+    @if (livroEmEdicao(); as livro) {
+      <p class="painel-nota">Você está editando “{{ livro.titulo }}”.</p>
+    }
 
-<label>Autor:</label>
-<input
-  type="text"
-  [(ngModel)]="novoLivro.autor"
-  placeholder="Digite o autor do livro"
->
+    <form class="form-grade" (ngSubmit)="salvar()" autocomplete="off">
+      <div class="campo campo-largo" [class.invalido]="erroDoCampo('titulo')">
+        <label for="titulo">Título</label>
+        <input
+          id="titulo"
+          name="titulo"
+          type="text"
+          placeholder="Ex.: Dom Casmurro"
+          [attr.aria-invalid]="erroDoCampo('titulo') ? 'true' : null"
+          [(ngModel)]="form.titulo"
+        />
+        @if (erroDoCampo('titulo'); as msg) { <span class="erro">{{ msg }}</span> }
+      </div>
 
-<label>Ano:</label>
-<input
-  type="number"
-  [(ngModel)]="novoLivro.ano"
-  placeholder="Digite o ano"
->
+      <div class="campo campo-largo" [class.invalido]="erroDoCampo('autor')">
+        <label for="autor">Autor</label>
+        <input
+          id="autor"
+          name="autor"
+          type="text"
+          placeholder="Ex.: Machado de Assis"
+          [attr.aria-invalid]="erroDoCampo('autor') ? 'true' : null"
+          [(ngModel)]="form.autor"
+        />
+        @if (erroDoCampo('autor'); as msg) { <span class="erro">{{ msg }}</span> }
+      </div>
 
-<label>Editora:</label>
-<input
-  type="text"
-  [(ngModel)]="novoLivro.editora"
-  placeholder="Digite a editora"
->
+      <div class="campo" [class.invalido]="erroDoCampo('ano')">
+        <label for="ano">Ano</label>
+        <input
+          id="ano"
+          name="ano"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          [max]="anoAtual"
+          placeholder="Ex.: 1899"
+          [attr.aria-invalid]="erroDoCampo('ano') ? 'true' : null"
+          [(ngModel)]="form.ano"
+        />
+        @if (erroDoCampo('ano'); as msg) { <span class="erro">{{ msg }}</span> }
+      </div>
 
-<label>Número de páginas:</label>
-<input
-  type="number"
-  [(ngModel)]="novoLivro.paginas"
-  placeholder="Digite o número de páginas"
->
+      <div class="campo" [class.invalido]="erroDoCampo('paginas')">
+        <label for="paginas">Páginas</label>
+        <input
+          id="paginas"
+          name="paginas"
+          type="number"
+          inputmode="numeric"
+          min="1"
+          placeholder="Ex.: 256"
+          [attr.aria-invalid]="erroDoCampo('paginas') ? 'true' : null"
+          [(ngModel)]="form.paginas"
+        />
+        @if (erroDoCampo('paginas'); as msg) { <span class="erro">{{ msg }}</span> }
+      </div>
 
-<label>Gênero:</label>
-<input
-  type="text"
-  [(ngModel)]="novoLivro.genero"
-  placeholder="Digite o gênero"
->
+      <div class="campo campo-largo" [class.invalido]="erroDoCampo('editora')">
+        <label for="editora">Editora</label>
+        <input
+          id="editora"
+          name="editora"
+          type="text"
+          placeholder="Ex.: Companhia das Letras"
+          [attr.aria-invalid]="erroDoCampo('editora') ? 'true' : null"
+          [(ngModel)]="form.editora"
+        />
+        @if (erroDoCampo('editora'); as msg) { <span class="erro">{{ msg }}</span> }
+      </div>
 
-@if (LivroEmEdicao !== null) {
-  <button (click)="SalvarEdicao()">Salvar edição</button>
-  <button (click)="MetodoCancelarEdicao()">Cancelar</button>
-} @else {
-  <button (click)="AdicionarLivro()">Adicionar livro</button>
-  <button (click)="MetodoCancelarAdicao()">Limpar campos</button>
-}
+      <div class="campo campo-largo" [class.invalido]="erroDoCampo('genero')">
+        <label for="genero">Gênero</label>
+        <input
+          id="genero"
+          name="genero"
+          type="text"
+          placeholder="Ex.: Romance"
+          [attr.aria-invalid]="erroDoCampo('genero') ? 'true' : null"
+          [(ngModel)]="form.genero"
+        />
+        @if (erroDoCampo('genero'); as msg) { <span class="erro">{{ msg }}</span> }
+      </div>
 
-<hr>
+      <div class="acoes campo-largo">
+        <button type="submit" class="btn btn-primario" [disabled]="processando()">
+          {{ livroEmEdicao() ? 'Salvar alterações' : 'Adicionar livro' }}
+        </button>
+        <button type="button" class="btn btn-secundario" [disabled]="processando()" (click)="cancelar()">
+          {{ livroEmEdicao() ? 'Cancelar edição' : 'Limpar campos' }}
+        </button>
+      </div>
+    </form>
+  </section>
 
-<h3>Livros cadastrados</h3>
+  <!-- Acervo -->
+  <section class="acervo" aria-labelledby="titulo-acervo">
+    <div class="acervo-topo">
+      <div class="acervo-titulo">
+        <h2 id="titulo-acervo">Acervo</h2>
+        @if (!carregando()) {
+          <p>{{ resumo() }}</p>
+        }
+      </div>
 
-<ul>
-  @for (livro of livros; track livro.id) {
-    <li>
-      <strong>{{ livro.titulo }}</strong><br>
-      Autor: {{ livro.autor }}<br>
-      Ano: {{ livro.ano }}<br>
-      Editora: {{ livro.editora }}<br>
-      Páginas: {{ livro.paginas }}<br>
-      Gênero: {{ livro.genero }}<br>
+      <div class="busca">
+        <label for="busca" class="sr-only">Buscar no acervo</label>
+        <input
+          id="busca"
+          type="search"
+          placeholder="Buscar por título, autor, editora ou gênero"
+          [ngModel]="busca()"
+          (ngModelChange)="busca.set($event)"
+        />
+      </div>
+    </div>
 
-      <button (click)="EditarLivro(livro)">Editar</button>
-      <button (click)="ExcluirLivro(livro)">Excluir</button>
-    </li>
-    <br>
-  }
-</ul>
+    @if (carregando()) {
+      <p class="vazio" role="status">Carregando o acervo...</p>
+    } @else if (livros().length === 0) {
+      <div class="vazio">
+        <p class="vazio-titulo">O acervo está vazio.</p>
+        <p>Preencha o formulário e escolha “Adicionar livro” para cadastrar o primeiro.</p>
+      </div>
+    } @else if (livrosFiltrados().length === 0) {
+      <div class="vazio">
+        <p class="vazio-titulo">Nenhum livro encontrado para “{{ busca() }}”.</p>
+        <button type="button" class="btn btn-secundario btn-pequeno" (click)="busca.set('')">Limpar busca</button>
+      </div>
+    } @else {
+      <ul class="fichas">
+        @for (livro of livrosFiltrados(); track livro.id) {
+          <li class="ficha" [class.em-edicao]="livroEmEdicao()?.id === livro.id" [style.--lombada]="corDaLombada(livro.genero)">
+            <span class="lombada" aria-hidden="true"></span>
+
+            <div class="ficha-corpo">
+              <h3>{{ livro.titulo }}</h3>
+              <div class="ficha-linha">
+                <p class="autor">{{ livro.autor }}</p>
+                <span class="genero">{{ livro.genero }}</span>
+              </div>
+              <dl class="dados">
+                <div><dt>Ano</dt><dd>{{ livro.ano }}</dd></div>
+                <div><dt>Editora</dt><dd>{{ livro.editora }}</dd></div>
+                <div><dt>Páginas</dt><dd>{{ livro.paginas }}</dd></div>
+              </dl>
+            </div>
+
+            <div class="ficha-acoes">
+              <button
+                type="button"
+                class="btn btn-secundario btn-pequeno"
+                [disabled]="processando()"
+                [attr.aria-label]="'Editar ' + livro.titulo"
+                (click)="editar(livro)"
+              >Editar</button>
+              <button
+                type="button"
+                class="btn btn-perigo-suave btn-pequeno"
+                [disabled]="processando()"
+                [attr.aria-label]="'Excluir ' + livro.titulo"
+                (click)="pedirExclusao(livro)"
+              >Excluir</button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</main>
+
+<!-- Confirmação de exclusão -->
+<dialog #dialogo class="dialogo" aria-labelledby="titulo-dialogo" (close)="dialogoFechou()">
+  <h2 id="titulo-dialogo">Excluir livro?</h2>
+  <p>“{{ livroParaExcluir()?.titulo }}” será removido do acervo. Essa ação não pode ser desfeita.</p>
+  <div class="acoes">
+    <button type="button" class="btn btn-secundario" (click)="cancelarExclusao()">Cancelar</button>
+    <button type="button" class="btn btn-perigo" [disabled]="processando()" (click)="confirmarExclusao()">
+      Excluir livro
+    </button>
+  </div>
+</dialog>
